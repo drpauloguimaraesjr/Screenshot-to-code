@@ -1,0 +1,5 @@
+fastapi==0.95.2
+uvicorn[standard]==0.21.1
+python-multipart==0.0.6
+jinja2
+numpy
