@@ -28,7 +28,7 @@ class Compiler:
 
         self.root = Node("body", None, self.content_holder)
 
-    def compile(self, tokens, output_file_path):
+    def compile(self, tokens, output_file_path, rendering_function=None):
         dsl_file = tokens
         
         #Parse fix
@@ -59,7 +59,8 @@ class Compiler:
                     element = Node(t, current_parent, self.content_holder)
                     current_parent.add_child(element)
 
-        output_html = self.root.render(self.dsl_mapping, rendering_function=render_content_with_text)
+        render_fn = rendering_function if rendering_function is not None else render_content_with_text
+        output_html = self.root.render(self.dsl_mapping, rendering_function=render_fn)
         if output_html is None:
             return "Parsing Error"
         
