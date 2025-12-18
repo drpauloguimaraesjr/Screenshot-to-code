@@ -1,10 +1,21 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import sys
 import tempfile
 
 app = FastAPI(title="Screenshot-to-code API")
+
+# Allow CORS so the frontend (hosted elsewhere) can call this API.
+# For production, replace ['*'] with the exact origin(s) (e.g. https://your-frontend.vercel.app)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Make the compiler importable from the repo Bootstrap/compiler
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))

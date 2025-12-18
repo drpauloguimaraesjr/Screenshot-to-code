@@ -12,7 +12,8 @@ Deploy frontend to Vercel
 
 Deploy backend to Railway (or any container host)
 1. Create a new service on Railway and connect the GitHub repo, or deploy using Docker.
-2. Railway sets a `PORT` env var; the `Dockerfile` uses it. If using Railway's GitHub deploy, set the start command to:
+
+2. Railway sets a `PORT` env var; the `Dockerfile` uses it. When Railway asks for a port to generate a public URL, use `8000` (the FastAPI/uvicorn port used here). If using Railway's GitHub deploy, set the start command to:
 
 ```bash
 uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
