@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: screenshot-to-code-api
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /
+    # Build from repo root using the backend Dockerfile
+    dockerfilePath: backend/Dockerfile
+    # Render sets PORT; our Dockerfile passes it to uvicorn
+    envVars:
+      - key: PORT
+        value: 8080

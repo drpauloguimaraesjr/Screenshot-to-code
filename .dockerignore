@@ -1,0 +1,23 @@
+# VCS and local env
+.git
+.gitignore
+.venv/
+*.env
+*.log
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Not needed in container runtime
+README_images/
+images/
+HTML/
+Bootstrap/resources/
+**/*.ipynb
+frontend/
+
+# Keep the DSL mapping available if needed
+!Bootstrap/compiler/assets/web-dsl-mapping.json

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Screenshot-to-code Frontend</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Screenshot-to-code Frontend</h1>
+    <p>Envie um arquivo <code>.gui</code> e veja o HTML gerado.</p>
+  </header>
+
+  <label>
+    URL do backend:
+    <input id="backendUrl" type="text" value="https://screenshot-to-code-api-production.up.railway.app" />
+  </label>
+
+  <form id="uploadForm">
+    <label>
+      Selecione um arquivo .gui:
+      <input id="guiFile" type="file" accept=".gui" required />
+    </label>
+    <div id="controls">
+      <button type="submit">Gerar HTML</button>
+      <a id="downloadLink" href="#" download="output.html" style="display:none">Baixar HTML</a>
+      <button id="checkHealth" type="button" class="secondary">Testar conexão</button>
+    </div>
+    <p id="status"></p>
+  </form>
+
+  <iframe id="preview" title="Pré-visualização do HTML"></iframe>
+
+  <script src="script.js"></script>
+</body>
+</html>

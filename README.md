@@ -1,3 +1,59 @@
+# Screenshot-to-code
+## Frontend (Uploader)
+
+- Caminho: `frontend/`
+- Como usar localmente:
+  1. Garanta o backend rodando (veja seção Backend abaixo)
+  2. Abra `frontend/index.html` no navegador
+  3. Ajuste "URL do backend" se necessário (por padrão aponta para a API em produção no Railway)
+  4. Clique em "Testar conexão" para validar
+  5. Envie um arquivo `.gui` e visualize/baixe o HTML gerado
+
+- Dicas:
+  - Você pode passar a URL via query string: `index.html?api=https://screenshot-to-code-api-production.up.railway.app`
+  - A URL fica salva em `localStorage` para os próximos usos
+
+### API Backend - Produção
+
+- Base URL: `https://screenshot-to-code-api-production.up.railway.app`
+- Endpoints:
+  - `GET /healthz` → `{ "status": "ok" }`
+  - `GET /` → HTML com instruções breves
+  - `POST /compile-gui` (multipart/form-data, campo `file` com `.gui`) → retorna HTML (text/html)
+  - Códigos de status: 200 (ok), 400 (arquivo inválido), 500 (falha na compilação)
+
+### Deploy do Frontend (Vercel ou qualquer estático)
+
+Como é estático, basta subir a pasta `frontend/`:
+- Vercel: "Add New... → Project" e selecione esse repositório, definindo `frontend/` como a pasta raiz
+- Netlify: arraste/solte a pasta `frontend/`
+- GitHub Pages: ative Pages para a branch que contém `frontend/`
+
+Após o deploy, ajuste o campo "URL do backend" na página para apontar para sua API pública.
+
+## Backend
+
+- Caminho: `backend/`
+- Execução local (Windows PowerShell):
+  ```powershell
+  cd "C:\Users\Cairo\screenshot to code\Screenshot-to-code"
+  .\.venv\Scripts\Activate.ps1
+  .\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+  ```
+- Endpoints principais:
+  - `GET /healthz` – healthcheck
+  - `POST /compile-gui` – recebe um `.gui` (campo `file`) e retorna HTML
+
+- Configuração:
+  - CORS aberto para facilitar testes
+  - Mapeamento DSL: por padrão usa `backend/assets/web-dsl-mapping.json`; é possível forçar via env `DSL_MAPPING_PATH`
+  - Integra o compilador original em `Bootstrap/compiler/classes`
+
+### Deploy Backend (Railway/Render)
+
+- Railway: repare que a plataforma detecta e usa o `Dockerfile` na raiz
+- Render: use o `render.yaml` na raiz (Blueprint)
+
 <img src="/README_images/screenshot-to-code.svg?raw=true" width="800px">
 
 ---
