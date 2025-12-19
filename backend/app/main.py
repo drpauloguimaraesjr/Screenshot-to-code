@@ -9,6 +9,7 @@ from .config import settings
 from ..core.compiler_adapter import get_compiler, render_content_with_text
 import requests
 from urllib.parse import urlparse
+from PIL import Image
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -104,3 +105,83 @@ def fetch_url(url: str = Query(..., description="Full website URL to fetch")):
         raise HTTPException(status_code=504, detail="Timeout fetching URL")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch URL: {str(e)}")
+
+
+@app.post("/image-to-gui")
+async def image_to_gui(file: UploadFile = File(...)):
+    """
+    Naive screenshot-to-GUI: generate a simple .gui scaffold from an image
+    and return both the generated .gui and compiled HTML.
+    This is a minimal MVP without ML; it uses image size heuristics.
+    """
+    if not file.filename or not any(file.filename.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg"]):
+        raise HTTPException(status_code=400, detail="Envie uma imagem (.png, .jpg, .jpeg)")
+
+    tmp_dir = tempfile.mkdtemp()
+    try:
+        input_path = os.path.join(tmp_dir, file.filename)
+        output_path = os.path.join(tmp_dir, os.path.splitext(file.filename)[0] + '.html')
+
+        # Save uploaded image
+        with open(input_path, 'wb') as f:
+            contents = await file.read()
+            f.write(contents)
+
+        # Open image and derive a simple layout heuristic
+        try:
+            img = Image.open(input_path)
+            width, height = img.size
+        except Exception:
+            raise HTTPException(status_code=400, detail="Não foi possível abrir a imagem enviada")
+
+        # Very naive heuristic: wide images -> multiple cards, tall images -> single content
+        if width >= height * 1.3:
+            gui_tokens = (
+                "header {\n"
+                "btn-active, btn-inactive, btn-inactive, btn-inactive, btn-inactive\n"
+                "}\n"
+                "row {\n"
+                "quadruple { small-title, text, btn-green }\n"
+                "quadruple { small-title, text, btn-orange }\n"
+                "quadruple { small-title, text, btn-red }\n"
+                "quadruple { small-title, text, btn-green }\n"
+                "}\n"
+                "row {\n"
+                "single { small-title, text, btn-blue }\n"
+                "}\n"
+            )
+        else:
+            gui_tokens = (
+                "header {\n"
+                "btn-active, btn-inactive, btn-inactive\n"
+                "}\n"
+                "row {\n"
+                "single { small-title, text, btn-green }\n"
+                "}\n"
+            )
+
+        # Compile generated tokens
+        compiler = get_compiler(DSL_MAPPING_PATH)
+        result = compiler.compile(gui_tokens, output_path, rendering_function=render_content_with_text)
+        if result == "Parsing Error":
+            raise HTTPException(status_code=500, detail="Erro de parsing ao compilar GUI gerada")
+
+        # Read compiled HTML
+        with open(output_path, 'r', encoding='utf-8', errors='ignore') as fh:
+            html_content = fh.read()
+
+        return {
+            "gui": gui_tokens,
+            "html": html_content,
+            "width": width,
+            "height": height,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Falha ao gerar .gui: {str(e)}")
+    finally:
+        try:
+            shutil.rmtree(tmp_dir)
+        except Exception:
+            pass

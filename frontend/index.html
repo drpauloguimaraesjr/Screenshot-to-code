@@ -42,6 +42,19 @@
     </div>
   </section>
 
+  <section id="imageSection">
+    <h2>Gerar .gui a partir de uma imagem</h2>
+    <p>Faça upload de um print/screenshot para gerar um .gui básico e o HTML.</p>
+    <label>
+      Selecionar imagem:
+      <input id="imageFile" type="file" accept="image/*" />
+    </label>
+    <div id="controls3">
+      <button id="genGuiFromImage" type="button">Gerar .gui + HTML</button>
+      <a id="downloadGui" href="#" download="output.gui" style="display:none">Baixar .gui</a>
+    </div>
+  </section>
+
   <iframe id="preview" title="Pré-visualização do HTML"></iframe>
 
   <script src="script.js"></script>

@@ -5,6 +5,9 @@ const downloadEl = document.getElementById('downloadLink');
 const HEALTH_BTN = document.getElementById('checkHealth');
 const SITE_URL_INPUT = document.getElementById('siteUrl');
 const FETCH_SITE_BTN = document.getElementById('fetchSite');
+const IMAGE_INPUT = document.getElementById('imageFile');
+const GEN_GUI_BTN = document.getElementById('genGuiFromImage');
+const DOWNLOAD_GUI = document.getElementById('downloadGui');
 
 // Helpers
 const getBaseUrl = () => (urlInput.value || '').replace(/\/$/, '');
@@ -130,5 +133,56 @@ FETCH_SITE_BTN?.addEventListener('click', async () => {
   } catch (err) {
     statusEl.className = 'err';
     statusEl.textContent = 'Falha ao buscar site: ' + err.message;
+  }
+});
+
+GEN_GUI_BTN?.addEventListener('click', async () => {
+  const baseUrl = getBaseUrl();
+  const file = IMAGE_INPUT?.files?.[0];
+  if (!file) {
+    statusEl.className = '';
+    statusEl.textContent = 'Selecione uma imagem primeiro.';
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file, file.name);
+
+  statusEl.className = '';
+  statusEl.textContent = 'Gerando .gui + HTML...';
+  downloadEl.style.display = 'none';
+  DOWNLOAD_GUI.style.display = 'none';
+  previewEl.src = 'about:blank';
+
+  try {
+    const resp = await fetch(`${baseUrl}/image-to-gui`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Erro ${resp.status}: ${errText}`);
+    }
+
+    const data = await resp.json();
+    const htmlBlob = new Blob([data.html || ''], { type: 'text/html' });
+    const htmlUrl = URL.createObjectURL(htmlBlob);
+    previewEl.src = htmlUrl;
+
+    downloadEl.href = htmlUrl;
+    downloadEl.download = (file.name.replace(/\.[Pp][Nn][Gg]|\.[Jj][Pp][Ee]?[Gg]$/, '') || 'output') + '.html';
+    downloadEl.style.display = 'inline-block';
+
+    const guiBlob = new Blob([data.gui || ''], { type: 'text/plain' });
+    const guiUrl = URL.createObjectURL(guiBlob);
+    DOWNLOAD_GUI.href = guiUrl;
+    DOWNLOAD_GUI.download = (file.name.replace(/\.[Pp][Nn][Gg]|\.[Jj][Pp][Ee]?[Gg]$/, '') || 'output') + '.gui';
+    DOWNLOAD_GUI.style.display = 'inline-block';
+
+    statusEl.className = 'ok';
+    statusEl.textContent = 'Gerado com sucesso (.gui + HTML).';
+  } catch (err) {
+    statusEl.className = 'err';
+    statusEl.textContent = 'Falha ao gerar: ' + err.message;
   }
 });
