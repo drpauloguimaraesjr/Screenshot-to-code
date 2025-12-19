@@ -39,6 +39,11 @@
     </label>
     <div id="controls2">
       <button id="fetchSite" type="button">Buscar HTML do site</button>
+      <button id="analyzeSite" type="button" class="secondary">Analisar URL</button>
+    </div>
+    <div id="analysisPanel" style="display:none">
+      <h3>Resultado da análise</h3>
+      <pre id="analysis" style="white-space:pre-wrap"></pre>
     </div>
   </section>
 
@@ -50,6 +55,9 @@
       <input id="imageFile" type="file" accept="image/*" />
     </label>
     <div id="controls3">
+      <label class="inline">
+        <input id="useOcr" type="checkbox" /> Usar OCR (experimental)
+      </label>
       <button id="genGuiFromImage" type="button">Gerar .gui + HTML</button>
       <a id="downloadGui" href="#" download="output.gui" style="display:none">Baixar .gui</a>
     </div>
