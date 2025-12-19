@@ -3,6 +3,8 @@ const statusEl = document.getElementById('status');
 const previewEl = document.getElementById('preview');
 const downloadEl = document.getElementById('downloadLink');
 const HEALTH_BTN = document.getElementById('checkHealth');
+const SITE_URL_INPUT = document.getElementById('siteUrl');
+const FETCH_SITE_BTN = document.getElementById('fetchSite');
 
 // Helpers
 const getBaseUrl = () => (urlInput.value || '').replace(/\/$/, '');
@@ -82,5 +84,51 @@ HEALTH_BTN?.addEventListener('click', async () => {
   } catch (e) {
     statusEl.className = 'err';
     statusEl.textContent = 'Falha de conexão: ' + e.message;
+  }
+});
+
+FETCH_SITE_BTN?.addEventListener('click', async () => {
+  const baseUrl = getBaseUrl();
+  const siteUrl = (SITE_URL_INPUT?.value || '').trim();
+  if (!siteUrl) {
+    statusEl.className = '';
+    statusEl.textContent = 'Informe um URL do site.';
+    return;
+  }
+
+  statusEl.className = '';
+  statusEl.textContent = 'Buscando HTML do site...';
+  downloadEl.style.display = 'none';
+  previewEl.src = 'about:blank';
+
+  try {
+    const u = new URL(`${baseUrl}/fetch-url`);
+    u.searchParams.set('url', siteUrl);
+    const resp = await fetch(u.toString(), { method: 'GET' });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Erro ${resp.status}: ${errText}`);
+    }
+
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    previewEl.src = url;
+
+    // Nome de arquivo baseado no host
+    let downloadName = 'site.html';
+    try {
+      const parsed = new URL(siteUrl);
+      downloadName = (parsed.hostname || 'site') + '.html';
+    } catch {}
+
+    downloadEl.href = url;
+    downloadEl.download = downloadName;
+    downloadEl.style.display = 'inline-block';
+
+    statusEl.className = 'ok';
+    statusEl.textContent = 'HTML do site carregado com sucesso.';
+  } catch (err) {
+    statusEl.className = 'err';
+    statusEl.textContent = 'Falha ao buscar site: ' + err.message;
   }
 });

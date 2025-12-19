@@ -1,12 +1,14 @@
 import sys
 import os
 import shutil
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
+from fastapi.responses import HTMLResponse, FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 import tempfile
 from .config import settings
 from ..core.compiler_adapter import get_compiler, render_content_with_text
+import requests
+from urllib.parse import urlparse
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -74,3 +76,31 @@ async def compile_gui(file: UploadFile = File(...)):
             shutil.rmtree(tmp_dir)
         except Exception:
             pass  # Ignore cleanup errors
+
+
+@app.get("/fetch-url")
+def fetch_url(url: str = Query(..., description="Full website URL to fetch")):
+    """
+    Fetch a webpage HTML by URL and return the raw HTML.
+    This is a passthrough helper for previewing existing sites in the frontend.
+    """
+    try:
+        # Basic validation
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            raise HTTPException(status_code=400, detail="URL must start with http or https")
+
+        # Fetch with a simple UA and timeout
+        resp = requests.get(url, headers={"User-Agent": "Screenshot-to-code/1.0"}, timeout=10)
+        if resp.status_code >= 400:
+            raise HTTPException(status_code=resp.status_code, detail=f"Upstream error fetching URL: {resp.status_code}")
+
+        content = resp.text
+        # Return HTML directly. Frontend will preview and allow download.
+        return HTMLResponse(content=content)
+    except HTTPException:
+        raise
+    except requests.Timeout:
+        raise HTTPException(status_code=504, detail="Timeout fetching URL")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch URL: {str(e)}")
